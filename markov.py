@@ -1,6 +1,5 @@
 import random
 from collections import defaultdict
-from json import loads, dumps
 
 class CorpusException(Exception):
     pass
@@ -74,15 +73,6 @@ class Markov(object):
     
     def _add_to_chain(self, key, links):
         self._chain[key].append(links)
-
-#    def load_from_json(self, source):
-#        source = loads(source)
-#
-#        self._add_to_chain(source)
-#
-#    def dump_to_json(self):
-#        return dumps(self._chain)
-
 
     def learn(self, source):
         for parts in self._break(source):
