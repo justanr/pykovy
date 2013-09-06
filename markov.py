@@ -192,7 +192,7 @@ class Markov(object):
     
     state = property(_get_state, _set_state)
 
-   def keys(self):
+    def keys(self):
         return self._chain.keys()
 
     def values(self):
