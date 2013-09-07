@@ -5,6 +5,11 @@ Module for generating Markov chains.
 import random
 import collections
 
+from markovchain import MarkovChain
+
+__all__ = ['CorpusError', 'MarkovChainError', 'Markov', 'TextMarkov']
+
+
 class CorpusError(Exception):
     '''
     Used for errors with the corpus, such as it being too short.
@@ -20,75 +25,15 @@ class MarkovChainError(Exception):
 class Markov(object):
 
     def __init__(self, **kwargs):
-        self._chain = collections.defaultdict(list)
-        self._state = None
-
         self.order = kwargs.get('order', 3)
         self.links = kwargs.get('links', 10)
 
-
-    def __len__(self):
-        return len(self._chain.keys())
-
-    # All equality operators rely on the order of the Markov chain.
-    # This is useful for quickly determining if two chains are comparable
-
-    def __eq__(self, other):
-        """Compares the order of two Markov chains.
-
-        """
-        if not isinstance(other, Markov):
-            return NotImplemented
-        return self.order == other.order
-
-    def __ne__(self, other):
-        if not isinstance(other, Markov ):
-            return NotImplemented
-        return not self.__eq__(other)
-
-    def __lt__(self, other):
-        if not isinstance(other, Markov):
-            return NotImplemented
-        return self.order < other.order
-
-    def __le__(self, other):
-        if not isinstance(other, Markov):
-            return NotImplemented
-        return self.order <= other.order
-
-    def __gt__(self, other):
-        if not isinstance(other, Markov):
-            return NotImplemented
-        return self.order > other.order
-
-    def __ge__(self, other):
-        if not isinstance(other, Markov):
-            return NotImplemented
-        return self.order >= other.order
-
-    # These deal with unions, intersections, etc
-    # between two Markov chains
-
-    def __add__(self, other):
-        pass
-
-    def __radd__(self, other):
-        pass
-
-
-
-    # Other operations that might be run on the chains
-    
-    def __contains__(self, key):
-        if isinstance(key, tuple):
-            return key in self.keys()
-        return any(key in state for state in self.keys())
-
-
+        self._chain = MarkovChain(order=self.order)
+        
     # Now for the nitty gritty internals of the actual chains,
-    
     def _get_initial(self):
         return tuple(['']*self.order)
+    
 
     def _break_corpus(self, corpus):
         """Accepts an iterable and returns a generator of it's components
