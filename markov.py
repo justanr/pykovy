@@ -6,21 +6,7 @@ import random
 import collections
 
 from markovchain import MarkovChain
-
-__all__ = ['CorpusError', 'MarkovChainError', 'Markov', 'TextMarkov']
-
-
-class CorpusError(Exception):
-    '''
-    Used for errors with the corpus, such as it being too short.
-    '''
-    pass
-
-class MarkovChainError(Exception):
-    '''
-    Used for errors within a chain, such as trying to union different orders.
-    '''
-    pass
+from markoverror import CorpusError, MarkovChainError
 
 class Markov(object):
 
