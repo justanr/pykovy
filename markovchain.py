@@ -21,3 +21,63 @@ class MarkovChain(collections.defaultdict):
     def __init__(self, **kwargs):
         self.order = kwargs.get('order', 2)
         super(MarkovChain, self).__init__(list)
+
+    # Modified equality testers.
+
+    def __eq__(self, other):
+        '''Equality for Markov chains is resolved based on order,
+        rather than content. Instead of running self.order == other.order
+        every time (despite that being more explicit), this allows a
+        shortcut to that.
+
+        '''
+
+        if not isinstance(other, MarkovChain):
+            return NotImplemented
+
+        return self.order == other.order
+
+    def __ne__(self, other):
+        '''See self.__eq__ for implementation details.
+
+        '''
+        return not self.__eq__(other)
+
+    # Inequality comparions.
+    # These are actually set comparisons.
+
+    def __lt__(self, other):
+        '''Tests if self is a proper subset of other.
+        That is set(self.keys()) <= set(self.keys()) and 
+                set(self.keys()) != set(other.keys())
+
+        '''
+        if not isinstance(other, MarkovChain):
+            return NotImplemented
+        return set(self.keys()) < set(other.keys())
+
+    def __le__(self, other):
+        '''Tests if every element in self is in other.
+
+        '''
+        if not isinstance(other, MarkovChain):
+            return NotImplemented
+        return set(self.keys()) <= set(other.keys())
+
+    def __gt__(self, other):
+        '''Tests if self is a proper superset of other.
+        That is set(self.keys()) > set(other.keys()) and
+                set(self.keys()) != set(other.keys())
+
+        '''
+        if not isinstance(other, MarkovChain):
+            return NotImplemented
+        return set(self.keys()) > set(other.keys())
+
+    def __ge__(self, other):
+        '''Tests if every element in other is in self.
+
+        '''
+        if not isinstance(other, MarkovChain):
+            return NotImplemented
+        return set(self.keys()) >= set(other.keys())
