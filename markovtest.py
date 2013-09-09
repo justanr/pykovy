@@ -69,5 +69,25 @@ class TestMarkovChain(unittest.TestCase):
         self.assertFalse(chain < twochainz)
         self.assertFalse(twochainz > chain)
 
+    def test_contains(self):
+        chain = mc.MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+
+        self.assertTrue('Mary' in chain)
+        self.assertTrue(('Mary', 'had', 'a') in chain)
+
+    def test_setitem(self):
+        chain = mc.MarkovChain(order=3)
+
+        with self.assertRaises(AttributeError):
+            chain['test'] = 'test'
+
+        with self.assertRaises(AttributeError):
+            chain[('', '')] = 'test'
+
+        with self.assertRaises(AttributeError):
+            chain[('','','')] = 'test'
+
 if __name__ == '__main__':
     unittest.main()

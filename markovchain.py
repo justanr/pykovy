@@ -17,10 +17,16 @@ class MarkovChain(collections.defaultdict):
     and operator shortcuts (chain & other_chain, chain + other_chain. etc).
 
     '''
-
+    
+    # Pretty standard magic methods.
+    
     def __init__(self, **kwargs):
         self.order = kwargs.get('order', 2)
         super(MarkovChain, self).__init__(list)
+
+    def __repr__(self):
+        pattern = "<{} Order:{} Length:{}>"
+        return pattern.format(type(self).__name__, self.order, len(self))
 
     # Modified equality testers.
 
@@ -109,3 +115,37 @@ class MarkovChain(collections.defaultdict):
 
     def __isub__(self, other):
         raise NotImplementedError
+
+    # container methods
+
+    def __contains__(self, key):
+        if isinstance(key, tuple):
+            return key in self.keys()
+        return any(key in state for state in self.keys())
+
+    def __setitem__(self, key, value):
+        #DANGER WILL ROBINSON!
+        '''Over riden method to ensure data intergity.
+        Ensures that key is a tuple with the proper length
+        and that value is a list.
+
+        Type checking...I know.
+
+        '''
+
+        if not isinstance(key, tuple):
+            raise AttributeError('MarkovChain expects tuple as key, {} provided.'
+                            ''.format(type(key).__name__))
+
+        elif len(key) != self.order:
+            raise AttributeError('MarkovChain expects a tuple with length {}, '
+                                 '{} length given'.format(self.order, len(key)))
+
+        elif not isinstance(value, list):
+            raise AttributeError('MarkovChain expects a list as a value, '
+                                 '{} provided.'.format(type(value).__name__))
+
+
+        else:
+            super(MarkovChain, self).__setitem__(key, value)
+
