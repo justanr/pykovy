@@ -136,16 +136,27 @@ class MarkovChain(collections.defaultdict):
         if not isinstance(key, tuple):
             raise AttributeError('MarkovChain expects tuple as key, {} provided.'
                             ''.format(type(key).__name__))
-
         elif len(key) != self.order:
             raise AttributeError('MarkovChain expects a tuple with length {}, '
                                  '{} length given'.format(self.order, len(key)))
-
         elif not isinstance(value, list):
             raise AttributeError('MarkovChain expects a list as a value, '
                                  '{} provided.'.format(type(value).__name__))
-
-
         else:
             super(MarkovChain, self).__setitem__(key, value)
 
+    # over riding specific methods
+
+    def update(self, *args, **kwargs):
+        if args:
+            if len(args) > 1:
+                raise TypeError("MarkovChain.update expects at most 1 arguments, "
+                                "got {}.".format(len(args)))
+
+            other = dict(args[0])
+            
+            for key, value in other.iteritems():
+                self[key] = value
+
+        for key, value in kwargs.iteritems():
+            self[key] = value

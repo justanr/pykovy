@@ -89,5 +89,17 @@ class TestMarkovChain(unittest.TestCase):
         with self.assertRaises(AttributeError):
             chain[('','','')] = 'test'
 
+    def test_update(self):
+        chain = mc.MarkovChain(order=3)
+
+        with self.assertRaises(TypeError):
+            chain.update(*self.corpora)
+
+        chain.update(self.corpora[0])
+
+        self.assertTrue('Mary' in chain)
+        self.assertTrue(('Mary', 'had', 'a') in chain)
+        self.assertTrue(chain[('Mary', 'had', 'a')] == ['little'])
+
 if __name__ == '__main__':
     unittest.main()
