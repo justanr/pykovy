@@ -145,6 +145,35 @@ class MarkovChain(collections.defaultdict):
         else:
             super(MarkovChain, self).__setitem__(key, value)
 
+    def __getitem__(self, key):
+        # may have to be overridden.
+        pass
+
+    def __missing__(self, key):
+        # may have to be overridden. 
+        pass
+
+    def __delitem__(self, key):
+        # Will have to be overridden to perserve chain logic.
+        pass
+
+    # pickle methods
+    # I'm 100% lost here. Uh-oh.
+    # I know to store self.order for pickling, 
+    # I'll have to override some of these.
+
+    def __getstate__(self):
+        pass
+
+    def __setstate__(self, state):
+        pass
+
+    def __reduce__(self):
+        pass
+
+    def __reduce_ex__(self):
+        pass
+
     # over riding specific methods
 
     def update(self, *args, **kwargs):
@@ -160,3 +189,11 @@ class MarkovChain(collections.defaultdict):
 
         for key, value in kwargs.iteritems():
             self[key] = value
+
+    def setdefault(self, key, value=None):
+        # may have to be overridden.
+        pass
+
+    def pop(self, default=None):
+        # will have to be overridden to perserve chain logic.
+        pass
