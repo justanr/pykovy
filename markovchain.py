@@ -81,3 +81,31 @@ class MarkovChain(collections.defaultdict):
         if not isinstance(other, MarkovChain):
             return NotImplemented
         return set(self.keys()) >= set(other.keys())
+
+    # Bitwise and arithmetic operators.
+    # I'll leave this blank for now.
+    # Implementation has given me a headache before.
+
+    def __and__(self, other):
+        raise NotImplementedError
+
+    def __iand__(self, other):
+        raise NotImplementedError
+
+    def __or__(self, other):
+        raise NotImplementedError
+
+    def __ior__(self, other):
+        raise NotImplementedError
+
+    def __add__(self, other):
+        raise NotImplementedError
+
+    def __iadd__(self, other):
+        raise NotImplementedError
+
+    def __sub__(self, other):
+        raise NotImplementedError
+
+    def __isub__(self, other):
+        raise NotImplementedError
