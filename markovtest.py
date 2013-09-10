@@ -99,7 +99,38 @@ class TestMarkovChain(unittest.TestCase):
 
         self.assertTrue('Mary' in chain)
         self.assertTrue(('Mary', 'had', 'a') in chain)
-        self.assertTrue(chain[('Mary', 'had', 'a')] == ['little'])
+        self.assertTrue(chain[('', '', '')] == ['Mary'])
+
+    def test__find_by_sequence(self):
+        chain = mc.MarkovChain(order=3)
+        chain.update(self.corpora[0])
+        searches = [
+            ('Mary',),  
+            ('Mary', 'had', 'a'), 
+            ('Mary', 'had', 'a','little')
+        ]
+
+
+
+        for search in searches:
+            results = chain._search_by_sequence(search)
+            self.assertTrue(results)
+
+    def test_search(self):
+        chain = mc.MarkovChain(order=3)
+        chain.update(self.corpora[0])
+
+        searches = [
+            'Mary', 
+            ('Mary',),  
+            ('Mary', 'had', 'a'), 
+            ('Mary', 'had', 'a','little'),
+            ('Mary', 'had', 'a', 'little', 'lamb')
+        ]
+
+        for search in searches:
+            results = chain.search(search)
+            self.assertTrue(results) 
 
 if __name__ == '__main__':
     unittest.main()

@@ -145,17 +145,17 @@ class MarkovChain(collections.defaultdict):
         else:
             super(MarkovChain, self).__setitem__(key, value)
 
-    def __getitem__(self, key):
-        # may have to be overridden.
-        pass
+#   may have to be overridden.
+#   def __getitem__(self, key):
+#       super(MarkovChain, self).__getitem__(key)
 
-    def __missing__(self, key):
-        # may have to be overridden. 
-        pass
+#   may have to be overridden.
+#   def __missing__(self, key):
+#       super(MarkovChain, self).__missing__(key)
 
-    def __delitem__(self, key):
-        # Will have to be overridden to perserve chain logic.
-        pass
+#   Will have to be overridden to perserve chain logic.
+#   def __delitem__(self, key):
+#       super(MarkovChain, self).__delitem__(key)
 
     # pickle methods
     # I'm 100% lost here. Uh-oh.
@@ -194,6 +194,48 @@ class MarkovChain(collections.defaultdict):
         # may have to be overridden.
         pass
 
-    def pop(self, default=None):
-        # will have to be overridden to perserve chain logic.
+    def pop(self, key, default=None):
         pass
+
+    # actual custom code.
+    # criminey.
+    
+    # internal methods
+
+    def _search_by_sequence(self, search):
+        
+        # keys are tuple and won't match across types
+        search = tuple(search)
+        length = len(search)
+        match  = []
+
+        if length == self.order:
+            if search in self:
+                match.append(search)
+
+        elif length < self.order:
+           for n in range(self.order):
+                if n+length > self.order:
+                    break
+                for key in self.keys():
+                    if key[n:length+n] == search:
+                        match.append(key)
+
+        else: #must be longer
+            for n in range(self.order):
+                if n+self.order > length:
+                    break
+                for key in self.keys():
+                    if search[n:n+self.order] == key:
+                        match.append(key) 
+        return match
+    
+    # API
+
+    def search(self, search):
+        if isinstance(search, str):
+            search = (search, )
+
+        return self._search_by_sequence(search)
+
+
