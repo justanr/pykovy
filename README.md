@@ -1,66 +1,12 @@
 Order-N Markov Chains
 =====================
 
-A simple class to build order-n Markov Chains. Includes a method to start a chain with a certain combination if the key exists in the chain.
+A module to build Markov chains. The chains themselves are stored in a heavily modified defaultdict designed for data intergrity. The Markov object, and its descendents, use the chain object to construct probablities (stock market predictions, text gibberishm etc).
 
 Use
 ---
-First you want to gather your corpus -- I'm fond of using Lovecraft texts.
+Under Construction.
 
-```
-import markov
-from glob import glob
-
-chain = markov.Markov(3)
-
-texts = glob('lovecraft/*.txt')
-
-for text in texts:
-    with open(text, 'rb') as fh:
-        chain.learn(fh.read())
-
-chain.build_chain()
-```
-
-Sample output might be something like: 
-
-```
-['five',
- 'feet',
- 'long',
- 'with',
- 'crustaceous',
- 'bodies',
- 'bearing',
- 'vast',
- 'pairs'
- 'of']
-```
-
-You can also specify a chain begin with a certain key, if it exists.
-
-```
-#search key must be a tuple.
-search = ('bearing', 'vast')
-
-chain.build_chain(search)
-```
-
-Output:
-```
-['bearing',
- 'vast',
- 'fins',
- 'or',
- 'membranous',
- 'wings',
- 'and'
- 'several',
- 'sets',
- 'of']
-```
-
-If the search key doesn't exist, or is poorly formatted, it's discarded. Currently, any search keys that are longer than the chain's order are tuncated to the order.
 
 Exceptions
 ----------
@@ -69,4 +15,4 @@ There are two built in custom exceptions: `CorpusError` and `MarkovChainError`. 
 
 Other
 -----
-Currently, there's no persistence. Whoops. 
+Currently, there's no persistence. Whoops. Pickle and Redis are both being considered. 
