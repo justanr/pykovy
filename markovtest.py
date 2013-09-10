@@ -3,8 +3,7 @@ try:
 except ImportError:
     import unittest2 as unittest
 
-import markovchain as mc
-
+from markovchain import MarkovChain
 from markoverror import CorpusError, MarkovChainError
 
 class TestMarkovChain(unittest.TestCase):
@@ -39,9 +38,9 @@ class TestMarkovChain(unittest.TestCase):
             ]
 
     def test_eqaulitiy(self):
-        chain = mc.MarkovChain(order=2)
-        twochainz = mc.MarkovChain(order=3)
-        chain_3 = mc.MarkovChain(order=3)
+        chain = MarkovChain(order=2)
+        twochainz = MarkovChain(order=3)
+        chain_3 = MarkovChain(order=3)
 
         self.assertFalse(chain == twochainz)
         self.assertTrue(twochainz == chain_3)
@@ -50,8 +49,8 @@ class TestMarkovChain(unittest.TestCase):
         self.assertFalse(twochainz != chain_3)
 
     def test_inequality(self):
-        chain = mc.MarkovChain(order=3)
-        twochainz = mc.MarkovChain(order=3)
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
 
         chain.update(self.corpora[0])
         twochainz.update(self.corpora[0])
@@ -70,7 +69,7 @@ class TestMarkovChain(unittest.TestCase):
         self.assertFalse(twochainz > chain)
 
     def test_contains(self):
-        chain = mc.MarkovChain(order=3)
+        chain = MarkovChain(order=3)
 
         chain.update(self.corpora[0])
 
@@ -78,9 +77,9 @@ class TestMarkovChain(unittest.TestCase):
         self.assertTrue(('Mary', 'had', 'a') in chain)
 
     def test_setitem(self):
-        chain = mc.MarkovChain(order=3)
+        chain = MarkovChain(order=3)
 
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(TypeError):
             chain['test'] = 'test'
 
         with self.assertRaises(AttributeError):
@@ -89,8 +88,24 @@ class TestMarkovChain(unittest.TestCase):
         with self.assertRaises(AttributeError):
             chain[('','','')] = 'test'
 
+    def test___missing__(self):
+        chain = MarkovChain(order=3)
+
+        with self.assertRaises(TypeError):
+            chain['test'] = 'test'
+
+        self.assertTrue(len(chain) == 0)
+
+        with self.assertRaises(AttributeError):
+            chain[('test',)] = 'test'
+
+        self.assertTrue(len(chain) == 0)
+
+        chain[('','','')]
+        self.assertTrue(len(chain) == 1)
+
     def test_update(self):
-        chain = mc.MarkovChain(order=3)
+        chain = MarkovChain(order=3)
 
         with self.assertRaises(TypeError):
             chain.update(*self.corpora)
@@ -102,7 +117,7 @@ class TestMarkovChain(unittest.TestCase):
         self.assertTrue(chain[('', '', '')] == ['Mary'])
 
     def test__find_by_sequence(self):
-        chain = mc.MarkovChain(order=3)
+        chain = MarkovChain(order=3)
         chain.update(self.corpora[0])
         searches = [
             ('Mary',),  
@@ -117,7 +132,7 @@ class TestMarkovChain(unittest.TestCase):
             self.assertTrue(results)
 
     def test_search(self):
-        chain = mc.MarkovChain(order=3)
+        chain = MarkovChain(order=3)
         chain.update(self.corpora[0])
 
         searches = [

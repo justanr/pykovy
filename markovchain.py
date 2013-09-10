@@ -37,10 +37,8 @@ class MarkovChain(collections.defaultdict):
         shortcut to that.
 
         '''
-
         if not isinstance(other, MarkovChain):
             return NotImplemented
-
         return self.order == other.order
 
     def __ne__(self, other):
@@ -89,7 +87,7 @@ class MarkovChain(collections.defaultdict):
         return set(self.keys()) >= set(other.keys())
 
     # Bitwise and arithmetic operators.
-    # I'll leave this blank for now.
+    # I'll leave this unimplmented for now..
     # Implementation has given me a headache before.
 
     def __and__(self, other):
@@ -134,10 +132,10 @@ class MarkovChain(collections.defaultdict):
         '''
 
         if not isinstance(key, tuple):
-            raise AttributeError('MarkovChain expects tuple as key, {} provided.'
-                            ''.format(type(key).__name__))
+            raise TypeError('MarkovChain expects tuple as key, {} provided.'
+                                 ''.format(type(key).__name__))
         elif len(key) != self.order:
-            raise AttributeError('MarkovChain expects a tuple with length {}, '
+            raise AttributeError('MarkovChain expects key with length {}, '
                                  '{} length given'.format(self.order, len(key)))
         elif not isinstance(value, list):
             raise AttributeError('MarkovChain expects a list as a value, '
@@ -145,17 +143,9 @@ class MarkovChain(collections.defaultdict):
         else:
             super(MarkovChain, self).__setitem__(key, value)
 
-#   may have to be overridden.
-#   def __getitem__(self, key):
-#       super(MarkovChain, self).__getitem__(key)
-
-#   may have to be overridden.
-#   def __missing__(self, key):
-#       super(MarkovChain, self).__missing__(key)
-
-#   Will have to be overridden to perserve chain logic.
-#   def __delitem__(self, key):
-#       super(MarkovChain, self).__delitem__(key)
+#    Will have to be overridden to perserve chain logic.
+#    def __delitem__(self, key):
+#        super(MarkovChain, self).__delitem__(key)
 
     # pickle methods
     # I'm 100% lost here. Uh-oh.
