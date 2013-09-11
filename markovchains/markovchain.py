@@ -90,29 +90,87 @@ class MarkovChain(collections.defaultdict):
     # I'll leave this unimplmented for now..
     # Implementation has given me a headache before.
 
+    def _equality_checker(func):
+        def checker(self, other):
+            f = lambda x,y: False
+            if self != other:
+                f = lambda x,y: NotImplemented
+            return f(self, other) or func(self, other)
+        return checker
+
+    # wtf why does this work?
+    @_equality_checker
     def __and__(self, other):
-        raise NotImplementedError
+        ''' &: Intersection
+        Creates a new MarkovChain object from the keys shared 
+        by two (or more) MarkovChain objects.
+
+        '''
+        keys = self.viewkeys() & other
+        new = MarkovChain(order=self.order)
+
+        for key in keys:
+            new[key] = self[key] + other[key]
+
+        return new
 
     def __iand__(self, other):
-        raise NotImplementedError
+        return self & other
 
+    @_equality_checker
     def __or__(self, other):
-        raise NotImplementedError
+        new = MarkovChain(order=self.order)
+        keys = self.viewkeys() | other
+
+        for key in keys:
+            if key in self:
+                new[key] = self[key]
+            if key in other:
+                new[key] = other[key]
+        return new
 
     def __ior__(self, other):
-        raise NotImplementedError
+        return self | other
 
+    @_equality_checker
+    def __xor__(self, other):
+        new = MarkovChain(order=self.order)
+        keys = self.viewkeys() ^ other
+
+        for key in keys:
+            if key in self:
+                new[key] = self[key]
+            else:
+                new[key] = other[key]
+        return new
+
+    def __ixor__(self, other):
+        return self ^ other
+
+    @_equality_checker
     def __add__(self, other):
-        raise NotImplementedError
+        new = MarkovChain(order=self.order)
+
+        new.update(self)
+        new.update(other)
+
+        return new
 
     def __iadd__(self, other):
-        raise NotImplementedError
+        return self + other
 
+    @_equality_checker
     def __sub__(self, other):
-        raise NotImplementedError
+        new = MarkovChain(order=self.order)
+        keys = self.viewkeys() - other.viewkeys()
+
+        for key in keys:
+            new[key] = self[key]
+
+        return new
 
     def __isub__(self, other):
-        raise NotImplementedError
+        return self - other
 
     # container methods
 
