@@ -4,7 +4,7 @@
 
 import collections
 
-from markoverror import CorpusError, MarkovChainError
+# from markoverror import CorpusError, MarkovChainError
 
 class MarkovChain(collections.defaultdict):
     '''This class is essentially a fancy defaultdict that always

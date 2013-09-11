@@ -3,8 +3,7 @@ try:
 except ImportError:
     import unittest2 as unittest
 
-from markovchain import MarkovChain
-from markoverror import CorpusError, MarkovChainError
+from markovchains import MarkovChain, CorpusError, MarkovChainError
 
 class TestMarkovChain(unittest.TestCase):
     def setUp(self):
