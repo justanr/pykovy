@@ -116,10 +116,10 @@ class MarkovChain(collections.defaultdict):
 
     # container methods
 
-    def __contains__(self, key):
-        if isinstance(key, tuple):
-            return key in self.keys()
-        return any(key in state for state in self.keys())
+    def __contains__(self, search):
+        if isinstance(search, tuple):
+            return bool(self._search_by_sequence(search))
+        return any(search in key for key in self.keys())
 
     def __setitem__(self, key, value):
         #DANGER WILL ROBINSON!
@@ -144,8 +144,8 @@ class MarkovChain(collections.defaultdict):
             super(MarkovChain, self).__setitem__(key, value)
 
 #    Will have to be overridden to perserve chain logic.
-#    def __delitem__(self, key):
-#        super(MarkovChain, self).__delitem__(key)
+    def __delitem__(self, key):
+        super(MarkovChain, self).__delitem__(key)
 
     # pickle methods
     # I'm 100% lost here. Uh-oh.
@@ -200,7 +200,7 @@ class MarkovChain(collections.defaultdict):
         match  = []
 
         if length == self.order:
-            if search in self:
+            if search in self.keys():
                 match.append(search)
 
         elif length < self.order:
@@ -228,4 +228,18 @@ class MarkovChain(collections.defaultdict):
 
         return self._search_by_sequence(search)
 
+    def remove(self, keyword):
+        if keyword in self:
+            for key in self.keys():
+                if keyword in key:
+                    del self[key]
+
+                else:
+                    try:
+                        self[key].remove(keyword)
+                    except ValueError:
+                        pass
+
+                    if not self[key]:
+                        del self[key]
 

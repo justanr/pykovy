@@ -75,6 +75,7 @@ class TestMarkovChain(unittest.TestCase):
 
         self.assertTrue('Mary' in chain)
         self.assertTrue(('Mary', 'had', 'a') in chain)
+        self.assertTrue(('Mary', 'had', 'a', 'little') in chain)
 
     def test_setitem(self):
         chain = MarkovChain(order=3)
@@ -125,8 +126,6 @@ class TestMarkovChain(unittest.TestCase):
             ('Mary', 'had', 'a','little')
         ]
 
-
-
         for search in searches:
             results = chain._search_by_sequence(search)
             self.assertTrue(results)
@@ -146,6 +145,18 @@ class TestMarkovChain(unittest.TestCase):
         for search in searches:
             results = chain.search(search)
             self.assertTrue(results) 
+
+    def test_remove(self):
+        chain = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        chain.remove('Mary')
+
+        self.assertFalse('Mary' in chain)
+
+    @unittest.expectedFailure
+    def test__delitem__(self):
+        self.assertTrue(False)
 
 if __name__ == '__main__':
     unittest.main()
