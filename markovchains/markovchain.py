@@ -86,34 +86,6 @@ class MarkovChain(collections.defaultdict):
             return NotImplemented
         return set(self.keys()) >= set(other.keys())
 
-    # Bitwise and arithmetic operators.
-    # I'll leave this unimplmented for now..
-    # Implementation has given me a headache before.
-
-    def __and__(self, other):
-        raise NotImplementedError
-
-    def __iand__(self, other):
-        raise NotImplementedError
-
-    def __or__(self, other):
-        raise NotImplementedError
-
-    def __ior__(self, other):
-        raise NotImplementedError
-
-    def __add__(self, other):
-        raise NotImplementedError
-
-    def __iadd__(self, other):
-        raise NotImplementedError
-
-    def __sub__(self, other):
-        raise NotImplementedError
-
-    def __isub__(self, other):
-        raise NotImplementedError
-
     # container methods
 
     def __contains__(self, search):
