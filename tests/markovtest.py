@@ -157,5 +157,149 @@ class TestMarkovChain(unittest.TestCase):
     def test__delitem__(self):
         self.assertTrue(False)
 
+    def test__and__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        twochainz.update(self.corpora[0])
+        twochainz.update({('baa','baa','black'):['sheep']})
+
+        new = chain & twochainz
+
+        for key in new.keys():
+            self.assertTrue(key in chain)
+            self.assertTrue(key in twochainz)
+
+    def test__iand__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        twochainz.update(self.corpora[0])
+        twochainz.update({('baa','baa','black'):['sheep']})
+        
+        chain &= twochainz
+
+        self.assertFalse(('baa','baa','black') in chain) 
+
+    def test__or__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        twochainz.update(self.corpora[0])
+        twochainz.update({('baa','baa','black'):['sheep']})
+
+        new = chain | twochainz
+
+        for key in chain.keys():
+            self.assertTrue(key in new)
+
+        for key in twochainz.keys():
+            self.assertTrue(key in new)
+
+    def test__ior__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        keys = chain.keys()
+        twochainz.update(self.corpora[1])
+
+        chain |= twochainz
+
+        for key in keys:
+            self.assertTrue(key in chain)
+
+        for key in twochainz.keys():
+            self.assertTrue(key in chain)
+
+    def test__xor__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        twochainz.update(self.corpora[0])
+
+        new = chain ^ twochainz
+
+        self.assertFalse(len(new))
+
+        twochainz.update({('baa','baa','black'):['sheep']})
+
+        new = chain ^ twochainz
+        self.assertTrue(('baa','baa','black') in new)
+
+    def test__ixor__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        twochainz.update(self.corpora[0])
+
+        chain ^= twochainz
+
+        self.assertFalse(len(chain))
+
+        chain.update(self.corpora[1])
+        chain ^= twochainz
+
+        self.assertFalse(('','','')  in chain)
+
+    def test__add__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        twochainz.update(self.corpora[1])
+    
+        new = chain + twochainz
+
+        for key in chain.keys():
+            self.assertTrue(key in new)
+
+        for key in twochainz.keys():
+            self.assertTrue(key in new)
+
+    def test__iadd__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        twochainz.update(self.corpora[1])
+
+        chain += twochainz
+
+        for key in twochainz.keys():
+            self.assertTrue(key in chain)
+
+    def test__isub__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        twochainz.update(self.corpora[0])
+        chain.update({('baa','baa','black'):['sheep']})
+
+        chain -= twochainz
+        self.assertTrue(len(chain) == 1)
+        self.assertFalse(('Mary', 'had', 'a') in chain)
+
+
+    def test__sub__(self):
+        chain = MarkovChain(order=3)
+        twochainz = MarkovChain(order=3)
+
+        chain.update(self.corpora[0])
+        chain.update({('baa','baa','black'):['sheep']})
+        twochainz.update(self.corpora[0])
+
+        new = chain - twochainz
+
+        self.assertTrue(len(new) == 1)
+        self.assertTrue(('baa','baa','black') in new)
+        self.assertFalse(('Mary', 'had', 'a') in new)
+
 if __name__ == '__main__':
     unittest.main()

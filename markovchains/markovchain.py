@@ -47,44 +47,127 @@ class MarkovChain(collections.defaultdict):
         '''
         return not self.__eq__(other)
 
+    def _equality_checker(func):
+        def checker(self, other):
+            f = lambda x,y: False
+            if self != other:
+                f = lambda x,y: NotImplemented
+            return f(self, other) or func(self, other)
+        return checker
+
+   
+
     # Inequality comparions.
     # These are actually set comparisons.
 
+    @_equality_checker
     def __lt__(self, other):
         '''Tests if self is a proper subset of other.
         That is set(self.keys()) <= set(self.keys()) and 
                 set(self.keys()) != set(other.keys())
 
         '''
-        if not isinstance(other, MarkovChain):
-            return NotImplemented
         return set(self.keys()) < set(other.keys())
 
+    @_equality_checker
     def __le__(self, other):
         '''Tests if every element in self is in other.
 
         '''
-        if not isinstance(other, MarkovChain):
-            return NotImplemented
         return set(self.keys()) <= set(other.keys())
 
+    @_equality_checker
     def __gt__(self, other):
         '''Tests if self is a proper superset of other.
         That is set(self.keys()) > set(other.keys()) and
                 set(self.keys()) != set(other.keys())
 
         '''
-        if not isinstance(other, MarkovChain):
-            return NotImplemented
         return set(self.keys()) > set(other.keys())
 
+    @_equality_checker
     def __ge__(self, other):
         '''Tests if every element in other is in self.
 
         '''
-        if not isinstance(other, MarkovChain):
-            return NotImplemented
         return set(self.keys()) >= set(other.keys())
+
+    # Bitwise and arithmetic operators.
+    # I'll leave this unimplmented for now..
+    # Implementation has given me a headache before.
+
+    @_equality_checker
+    def __and__(self, other):
+        ''' &: Intersection
+        Creates a new MarkovChain object from the keys shared 
+        by two (or more) MarkovChain objects.
+
+        '''
+        keys = self.viewkeys() & other
+        new = MarkovChain(order=self.order)
+
+        for key in keys:
+            new[key] = self[key] + other[key]
+
+        return new
+
+    def __iand__(self, other):
+        return self & other
+
+    @_equality_checker
+    def __or__(self, other):
+        new = MarkovChain(order=self.order)
+        keys = self.viewkeys() | other
+
+        for key in keys:
+            if key in self:
+                new[key] = self[key]
+            if key in other:
+                new[key] = other[key]
+        return new
+
+    def __ior__(self, other):
+        return self | other
+
+    @_equality_checker
+    def __xor__(self, other):
+        new = MarkovChain(order=self.order)
+        keys = self.viewkeys() ^ other
+
+        for key in keys:
+            if key in self:
+                new[key] = self[key]
+            else:
+                new[key] = other[key]
+        return new
+
+    def __ixor__(self, other):
+        return self ^ other
+
+    @_equality_checker
+    def __add__(self, other):
+        new = MarkovChain(order=self.order)
+
+        new.update(self)
+        new.update(other)
+
+        return new
+
+    def __iadd__(self, other):
+        return self + other
+
+    @_equality_checker
+    def __sub__(self, other):
+        new = MarkovChain(order=self.order)
+        keys = self.viewkeys() - other.viewkeys()
+
+        for key in keys:
+            new[key] = self[key]
+
+        return new
+
+    def __isub__(self, other):
+        return self - other
 
     # container methods
 
