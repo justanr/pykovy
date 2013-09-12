@@ -63,34 +63,34 @@ class MarkovChain(collections.defaultdict):
     @_equality_checker
     def __lt__(self, other):
         '''Tests if self is a proper subset of other.
-        That is set(self.keys()) <= set(self.keys()) and 
-                set(self.keys()) != set(other.keys())
+        That is self.viewkeys() <= self.viewkeys() and 
+                self.viewkeys() != other.viewkeys()
 
         '''
-        return set(self.keys()) < set(other.keys())
+        return self.viewkeys() < other.viewkeys()
 
     @_equality_checker
     def __le__(self, other):
         '''Tests if every element in self is in other.
 
         '''
-        return set(self.keys()) <= set(other.keys())
+        return self.viewkeys() <= other.viewkeys()
 
     @_equality_checker
     def __gt__(self, other):
         '''Tests if self is a proper superset of other.
-        That is set(self.keys()) > set(other.keys()) and
-                set(self.keys()) != set(other.keys())
+        That is self.viewkeys() > other.viewkeys() and
+                self.viewkeys() != other.viewkeys()
 
         '''
-        return set(self.keys()) > set(other.keys())
+        return self.viewkeys() > other.viewkeys()
 
     @_equality_checker
     def __ge__(self, other):
         '''Tests if every element in other is in self.
 
         '''
-        return set(self.keys()) >= set(other.keys())
+        return self.viewkeys() >= other.viewkeys()
 
     # Bitwise and arithmetic operators.
     # I'll leave this unimplmented for now..
