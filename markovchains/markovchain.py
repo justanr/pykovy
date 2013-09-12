@@ -4,7 +4,7 @@
 
 import collections
 
-# from markoverror import CorpusError, MarkovChainError
+from . import CorpusError, MarkovChainError
 
 class MarkovChain(collections.defaultdict):
     '''This class is essentially a fancy defaultdict that always
@@ -50,8 +50,12 @@ class MarkovChain(collections.defaultdict):
     def _equality_checker(func):
         def checker(self, other):
             f = lambda x,y: False
-            if self != other:
-                f = lambda x,y: NotImplemented
+            if self != other: 
+                def f(self, other):
+                   raise MarkovChainError("Incompatible MarkovChains. Tried "
+                   "comparing order {} with order {}."
+                   "".format(self.order, other.order))
+
             return f(self, other) or func(self, other)
         return checker
 
