@@ -49,9 +49,10 @@ class MarkovChain(collections.defaultdict):
 
     def _equality_checker(func):
         def checker(self, other):
-           raise MarkovChainError("Incompatible MarkovChains. Tried "
-           "comparing order {} with order {}."
-           "".format(self.order, other.order))
+            if self != other:
+                raise MarkovChainError("Incompatible MarkovChains. Tried "
+                "comparing order {} with order {}."
+                "".format(self.order, other.order))
             return func(self, other)
         return checker
    
@@ -92,8 +93,11 @@ class MarkovChain(collections.defaultdict):
         return self.viewkeys() >= other.viewkeys()
 
     # Bitwise and arithmetic operators.
-    # I'll leave this unimplmented for now..
-    # Implementation has given me a headache before.
+
+    # Implemented but subject to change.
+    # I think this is terribly ugly and I'm not sure
+    # if I want to even keep it implemented.
+    # -justanr
 
     @_equality_checker
     def __and__(self, other):
