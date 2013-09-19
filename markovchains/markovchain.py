@@ -20,8 +20,8 @@ class MarkovChain(collections.defaultdict):
     
     # Pretty standard magic methods.
     
-    def __init__(self, **kwargs):
-        self.order = kwargs.get('order', 2)
+    def __init__(self, order=2):
+        self.order = order or 2
         super(MarkovChain, self).__init__(list)
 
     def __repr__(self):
@@ -49,16 +49,11 @@ class MarkovChain(collections.defaultdict):
 
     def _equality_checker(func):
         def checker(self, other):
-            f = lambda x,y: False
-            if self != other: 
-                def f(self, other):
-                   raise MarkovChainError("Incompatible MarkovChains. Tried "
-                   "comparing order {} with order {}."
-                   "".format(self.order, other.order))
-
-            return f(self, other) or func(self, other)
+           raise MarkovChainError("Incompatible MarkovChains. Tried "
+           "comparing order {} with order {}."
+           "".format(self.order, other.order))
+            return func(self, other)
         return checker
-
    
 
     # Inequality comparions.
@@ -152,8 +147,7 @@ class MarkovChain(collections.defaultdict):
     def __add__(self, other):
         new = MarkovChain(order=self.order)
 
-        new.update(self)
-        new.update(other)
+        new.update(self, other)
 
         return new
 
@@ -204,7 +198,10 @@ class MarkovChain(collections.defaultdict):
 
 #    Will have to be overridden to perserve chain logic.
     def __delitem__(self, key):
-        super(MarkovChain, self).__delitem__(key)
+        keys = self.search(key)
+
+        for key in keys:
+            super(MarkovChain, self).__delitem__(key)
 
     # pickle methods
     # I'm 100% lost here. Uh-oh.
@@ -225,19 +222,16 @@ class MarkovChain(collections.defaultdict):
 
     # over riding specific methods
 
-    def update(self, *args, **kwargs):
+    def update(self, *args):
         if args:
-            if len(args) > 1:
-                raise TypeError("MarkovChain.update expects at most 1 arguments, "
-                                "got {}.".format(len(args)))
-
-            other = dict(args[0])
-            
-            for key, value in other.iteritems():
-                self[key] = value
-
-        for key, value in kwargs.iteritems():
-            self[key] = value
+            for arg in args:
+                arg = dict(arg)
+                for key, value in arg.iteritems():
+                    self[key] = value
+            return None
+        else:
+            raise AttributeError("MarkovChain.update expects at least one"
+                                 "argument to be passed. Received none.")
 
     def setdefault(self, key, value=None):
         # may have to be overridden.
