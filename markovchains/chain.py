@@ -1,11 +1,9 @@
 from collections import Counter, UserDict, defaultdict, Mapping
 from itertools import chain
-from functools import partial, update_wrapper
+from functools import update_wrapper
 from numbers import Number
 from operator import itemgetter
 from random import random, choice
-
-import re
 
 from .errors import MarkovError, DisjointChainError, MarkovStateError
 from .utils import window, weighted_choice, unzip
