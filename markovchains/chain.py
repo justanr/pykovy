@@ -6,13 +6,23 @@ from operator import itemgetter
 from random import random, choice
 
 from .errors import MarkovError, DisjointChainError, MarkovStateError
-from .utils import window, weighted_choice, unzip
+from .utils import window, weighted_choice, unzip, patch_return_type
 
 __all__ = (
     "ProbablityMap", "MarkovChain",
     "MarkovChainIterator"
     )
 
+
+# these methods in counter explicitly return
+# a new instance of Counter rather than
+# returning an instance of the calling class
+__COUNTER_OVERRIDE_METHODS = [
+    '__add__', '__sub__', '__or__',
+    '__and__', '__pos__', '__neg__',
+    ]
+
+@patch_return_type(__COUNTER_OVERRIDE_METHODS, Counter)
 class ProbablityMap(Counter):
     """Simple wrapper for Counter to enforce types on values.
 
@@ -50,30 +60,6 @@ class ProbablityMap(Counter):
             raise TypeError("value must be type of {!r}".format(Number))
 
         super().__setitem__(key, value)
-
-# these methods in counter explicitly return
-# a new instance of Counter rather than
-# returning an instance of the calling class
-__COUNTER_OVERRIDE_METHODS = [
-    '__add__', '__sub__', '__or__',
-    '__and__', '__pos__', '__neg__',
-    ]
-
-def __override(name):
-    """Some of Counter's method return an explicit instance of Counter
-    rather than attempting to delegate to a child's class.
-    This is annoying to say the least.
-
-    Instead of coding the same piece six or more times, this
-    coerces the return type with some violence.
-    """
-
-    old = getattr(Counter, name)
-    return update_wrapper(lambda s, *a, **k: s.__class__(old(s, *a, **k)), old)
-
-for name in __COUNTER_OVERRIDE_METHODS:
-    setattr(ProbablityMap, name, __override(name))
-
 
 class MarkovChain(UserDict):
     """A collection of states and possible states.

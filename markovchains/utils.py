@@ -1,8 +1,9 @@
 from bisect import bisect_right
 from collections import deque
+from functools import update_wrapper
 from itertools import islice, accumulate
 
-__all__ = ("window", "weighted_choice", "unzip")
+__all__ = ("window", "weighted_choice", "unzip", "patch_return_type")
 
 def window(it, size):
     """Returns a sliding window (of width size) over data from the iterable.
@@ -43,3 +44,28 @@ def unzip(groups):
     [(1,'a'), (2, 'b'), (3, 'c')] -> [(1,2,3), ('a', 'b', 'c')]
     """
     return zip(*groups)
+
+
+def __coerce_return(name, source_cls):
+    """Helper to coerce return type on methods that explicitly create a type
+    rather than relying on reflection to determine the appropriate type.
+    """
+    old = getattr(source_cls, name)
+    return update_wrapper(lambda s, *a, **k: s.__class__(old(s, *a, **k)), old)
+
+def patch_return_type(names, source_cls):
+    """Class decorator to coerce return types on methods that don't rely on
+    reflection to determine the appropriate return type.
+
+        ..python::
+        @patch_return_type(['__add__', Counter)
+        class MyCounter(Counter):
+            pass
+
+        type(MyCounter('a') + MyCounter('a')) #MyCounter rather than Counter
+    """
+    def patcher(cls):
+        for name in names:
+            setattr(cls, name, __coerce_return(name, source_cls))
+        return cls
+    return patcher
