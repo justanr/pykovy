@@ -1,18 +1,41 @@
 Order-N Markov Chains
 =====================
+A simple library for building Order-N Markov Chains.
 
-A module to build Markov chains. The chains themselves are stored in a heavily modified defaultdict designed for data intergrity. The Markov object, and its descendents, use the chain object to construct probablities (stock market predictions, text gibberishm etc).
+There's nothing fancy here, just a modified `collections.Counter` and `collections.UserDict` to handle type saftey on a few things, some helper functions and an iterator for the Markov Chain class.
 
-Use
----
-Under Construction.
+Why?
+----
 
+Why not? Markov Chains are cool. Sure, I didn't include Monte Carlo, Hidden Markov Chains, lexical analysis and tagging and the whole host of other things that accompany more robust Markov libraries.
+
+But sometimes you just want generate funny text from H.P. Lovecraft stories.
+
+Uses
+----
+
+* Build custom Lipsum generators!
+* Analyze patterns in your meals!
+* Predict the stock market!
+* Combine it with AST to determine your programming habits!
+
+I guess more seriously, there's two ways to build the chains themselves:
+
+* Construct `ProbablityMap` from a source -- it acts just like `collections.Counter` except it'll pitch a fit if your value isn't an instance of `numbers.Number` and then attach it to a chain via `MarkovChain.update({('known', 'state'):MyProbMap})`
+* Use `MarkovChain.from_corpus` to automatically build the chain for you. Note that it accepts any iterable, so if you have a string and want words rather than characters, use `str.split`
+
+To iterate over the Chain -- usually to generate place holder non-sense text -- you can simply do `for value in my_markov_chain:`. Simply iterating over the chain gives you a default `MarkovChainIterator` instance. 
+
+If you'd like a configured instance, use `MarkovChain.iterate_chain` which can pass arbitrary keywords to `MarkovChainIterator`. 
+
+Alternatively you can just create the `MarkovChainIterator` yourself. It doesn't bother me.
 
 Exceptions
 ----------
 
-There are two built in custom exceptions: `CorpusError` and `MarkovChainError`. CorpusError should only be raised when there is an issue with the actual corpus (such as, it's shorter than the order of the chain, e.g. a corpus of two words in an order-3 chain). MarkovChainError should only be raised when there's an issue with a chain (such as trying to update the chain with another chain that's a different order).
+I've included the new `MarkovError` exception and two sub-exceptions:
 
-Other
------
-Currently, there's no persistence. Whoops. Pickle and Redis are both being considered. 
+* `MarkovStateError`: used in place (read: subclass of) KeyError when an invalid state is passed to the chain.
+* `DisjointChainError`: used in place of StopIteration when the `MarkovChainIterator` can not progress to the next possible state.
+
+
