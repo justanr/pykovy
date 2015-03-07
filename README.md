@@ -30,11 +30,19 @@ If you'd like a configured instance, use `MarkovChain.iterate_chain` which can p
 
 Alternatively you can just create the `MarkovChainIterator` yourself. It doesn't bother me.
 
+Classes
+-------
+
+* `ProbablityMap`: Modified `collections.Counter` that handles weighted, random choices from its key-value pairs via a closure.
+* `MarkovChain`: Simple modification on a `collections.UserDict` to collate `ProbablityMap` instances together to form a coherent chain.
+* `MarkovChainIterator`: Handles passing through possible states in a `MarkovChain` instance to produce non-deterministic state changes.
+
 Exceptions
 ----------
 
 I've included the new `MarkovError` exception and two sub-exceptions:
 
+* `MarkovError`: "Root" exception for library.
 * `MarkovStateError`: used in place (read: subclass of) KeyError when an invalid state is passed to the chain.
 * `DisjointChainError`: used in place of StopIteration when the `MarkovChainIterator` can not progress to the next possible state.
 

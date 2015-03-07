@@ -1,18 +1,12 @@
 from collections import Counter, UserDict, defaultdict, Mapping
 from itertools import chain
-from functools import update_wrapper
-from numbers import Number
-from operator import itemgetter
-from random import random, choice
-
+from random import random
 from .errors import MarkovError, DisjointChainError, MarkovStateError
-from .utils import window, weighted_choice, unzip, patch_return_type
+from .utils import window, weighted_choice_on_map, patch_return_type, random_key
 
 __all__ = (
-    "ProbablityMap", "MarkovChain",
-    "MarkovChainIterator"
+    "MarkovChain", "MarkovChainIterator", "ProbablityMap"
     )
-
 
 # these methods in counter explicitly return
 # a new instance of Counter rather than
@@ -24,42 +18,36 @@ __COUNTER_OVERRIDE_METHODS = [
 
 @patch_return_type(__COUNTER_OVERRIDE_METHODS, Counter)
 class ProbablityMap(Counter):
-    """Simple wrapper for Counter to enforce types on values.
+    """Specialized Counter class that provides for creating a weighted
+    random choice from it's key-value pairs.
 
-    By default, it only accepts members of numbers.Number, which includes: 
-    * bool
-    * int
-    * float
-    * complex
-    * long (Python 2)
-    * numbers.Real
-    * numbers.Complex
-    * numbers.Rational
-    * numbers.Integral
-    * fractions.Fraction
-    * decimal.Decimal
-    * possibly others
+    Certain methods from Counter are overriden to provide for correct
+    return types (ProbablityMap instead of Counter):
+        * __add__
+        * __sub__
+        * __or__
+        * __and__
+        * __pos__
+        * __neg__
 
-    However, this class allows registering other classes as children. If
-    you need to support a custom numeric like type, first use
-    numbers.Number.register to mark it as a numeric type -- or inherit
-    from one of these existing types.
+    These overrides are handled by the patch_return_type decorator.
 
-    Custom numeric types need to support integer addition.
+    If ProbablityMap is inherited from, the return type of these methods
+    will be of the subclass rather than ProbablityMap.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def weighted_choice(self, randomizer=random):
+        """Returns a closure to allow pulling weighted, random keys
+        from the object based on the "counted" value.
 
-    def __setitem__(self, key, value):
-        """Sets key-value pair in the Probablity Map and ensures type
-        safety of the value, i.e. it is a numeric type.
+        Allows passing a function that returns floats 0 < n < 1
+        if random.random should not be used.
+
+        The closure is frozen to the state of the object when it was called.
         """
 
-        if not isinstance(value, Number):
-            raise TypeError("value must be type of {!r}".format(Number))
+        return weighted_choice_on_map(self, randomizer)
 
-        super().__setitem__(key, value)
 
 class MarkovChain(UserDict):
     """A collection of states and possible states.
@@ -74,17 +62,21 @@ class MarkovChain(UserDict):
         if states is not None:
             self.update(states)
 
+
     def __repr__(self):
         return "{}(order={})".format(self.__class__.__name__, self.order)
+
 
     @property
     def order(self):
         """Order of the chain, refers to length of keys"""
         return self.__order
 
+
     @order.setter
     def order(self):
         raise TypeError("{}.order is read only".format(self.__class__name__))
+
 
     def __iter__(self):
         """Return a default MarkovChainIterator.
@@ -94,6 +86,7 @@ class MarkovChain(UserDict):
         """
         return MarkovChainIterator(chain=self.data)
 
+
     def __setitem__(self, key, value):
         """Sets key-value pair on the MarkovChain and ensures type saftey
         of keys and values.
@@ -101,22 +94,22 @@ class MarkovChain(UserDict):
         if not isinstance(key, tuple) or len(key) != self.order:
             raise TypeError("key must be tuple of length {}".format(self.order))
 
-        if isinstance(value, Mapping):
+        if not isinstance(value, Mapping):
+            raise TypeError("value must be a mapping")
+
+        if not isinstance(value, ProbablityMap):
             value = ProbablityMap(value)
-        else:
-            raise TypeError(
-                "value must be mapping with values "
-                "type of {!s}".format(Number)
-                )
 
         return super().__setitem__(key, value)
-    
+
+
     def __delitem__(self, key):
         raise MarkovError(
             "Cannot delete from probablity chain without possibly "
             "becoming disjoint. If you meant this, use "
             "{}.data.__delitem__".format(self.__class__.__name__)
             )
+
 
     @classmethod
     def from_corpus(cls, corpus, order, begin_with=None):
@@ -146,11 +139,14 @@ class MarkovChain(UserDict):
 
         return cls(states=staging, order=order)
 
+
     def iterate_chain(self, **kwargs):
         """Allows passing arbitrary keyword arguments to the
         MarkovChainIterator class for iteration.
         """
+
         return MarkovChainIterator(chain=self.data, **kwargs)
+
 
 class MarkovChainIterator(object):
     """Iteration handler for MarkovChains.
@@ -170,71 +166,75 @@ class MarkovChainIterator(object):
         * randomizer: callable that returns floats 0 < n < 1,
         defaults to :func:`~random.random`
         * begin_at: known state to place the iterator in
+        * randomizer: function to generate floats 0 < n < 1
+        defaults to random.random
         """
-        self.__chain = self.__build_chain(chain)
-        self.__initial_state(begin_at=begin_at, randomizer=randomizer)
 
-    def __initial_state(self, begin_at=None, randomizer=random, **kwargs):
-        """Places the iterator into a known or random state.
+        self.__invalid = False
+        self.__state = self.__possible = None
+        self.__randomizer = randomizer
+        self.__chain = self.__build_chain(chain)
+
+        if begin_at:
+            self.__set_state(begin_at)
+        else:
+            self.__random_state()
+
+
+    def reset(self, begin_at=None, **kwargs):
+        """Places the iterator back into a known or random state.
 
         Useful for reusing the same iterator multiple times without having
         to rebuild every weighted random chooser.
 
         * begin_at: known state to place the iterator in
-        * randomizer: callable that returns floats 0 < n < 1,
-        defaults to :func:`~random.random`
         """
 
-        self.__in_progress = False
-        self.__state = self.__possible = None
         self.__invalid = False
+        self.__state = self.__possible = None
         self.randomizer = randomizer
 
         if begin_at:
-            try:
-                self.state = begin_at
-            except MarkovStateError:
-                self.__random_state()
+            self.__set_state(begin_at)
         else:
             self.__random_state()
 
-    reset = __initial_state
 
-    def __random(self, chain):
-        """Returns a closure frozen to the current state of a probablity map.
-        The closure will allow choosing weighted random, possible states
-        from the map.
-
-        Uses the instance's __randomizer attribute if random.random isn't
-        desired or for testing purproses
+    def __set_state(self, begin_at=None):
+        """Attempts to place iterator into a known state and falls back
+        to a random state if the known state isn't possible.
         """
 
-        values, chances = unzip(sorted(chain.items(), key=itemgetter(1)))
-        chooser = weighted_choice(chances)
+        try:
+            self.state = begin_at
+        except MarkovStateError:
+            self.__random_state()
 
-        def random_item():
-            """Closure to associate indices returned by
-            weighted_choices with with indices of actual values.
-            """
-
-            choice = chooser(self.randomizer())
-            return values[choice]
-
-        return random_item
 
     def __build_chain(self, chain):
         """Builds map of states and weighted random
         closures from a Markov Chain's possible states.
         """
-        return {state : self.__random(chain[state]) for state in chain}
+
+        return {state : chain[state].weighted_choice() for state in chain}
+
 
     def __random_state(self):
         "Puts the chain into a random state."
-        self.state = choice(list(self.__chain.keys()))
+
+        self.state = random_key(self.__chain)
+
 
     @property
     def state(self):
+        """Current state of the iterator.
+
+        If set, the iterator tries to enter a known state. If the known
+        state does not exist, a MarkovStateError is raised.
+        """
+
         return self.__state
+
 
     @state.setter
     def state(self, state):
@@ -242,27 +242,23 @@ class MarkovChainIterator(object):
 
         If that isn't possible, raises a MarkovStateError.
         """
+
         if state not in self.__chain:
             raise MarkovStateError("Invalid state provided: {}".format(state))
 
         self.__state = state
         self.__possible = self.__chain[state]
 
-    @property
-    def in_progress(self):
-        """Reports if the iterator is currently in progress or not.
-        """
-        return self.__in_progress
 
     def __iter__(self):
         return self
 
+
     def __next__(self):
         """Steps through states until an invalid state is reached,
-        which stops iteration.
+        which stops iteration with a DisjointChainError.
         """
 
-        self.__in_progress = True
         value = self.__possible()
 
         if self.__invalid:
@@ -274,3 +270,4 @@ class MarkovChainIterator(object):
             self.__invalid = e
         
         return value
+

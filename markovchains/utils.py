@@ -2,8 +2,15 @@ from bisect import bisect_right
 from collections import deque
 from functools import update_wrapper
 from itertools import islice, accumulate
+from functools import update_wrapper
+from operator import itemgetter
+from random import choice, random
 
-__all__ = ("window", "weighted_choice", "unzip", "patch_return_type")
+__all__ = (
+    "window", "weighted_choice", "unzip", 
+    "patch_return_type", "weighted_choice_on_map", "random_key"
+    )
+
 
 def window(it, size):
     """Returns a sliding window (of width size) over data from the iterable.
@@ -19,6 +26,7 @@ def window(it, size):
         window.append(i)
         yield tuple(window)
 
+
 def weighted_choice(weights):
     """Creates a list of running totals for weights to choose from 
     and returns a callable to handle the actual choosing process.
@@ -32,10 +40,36 @@ def weighted_choice(weights):
     """
 
     weights = list(accumulate(weights))
+
     def weighted_chooser(choice):
         choice *= weights[-1]
         return bisect_right(weights, choice)
+
     return weighted_chooser
+
+
+def weighted_choice_on_map(mapping, randomizer=random):
+    """Creates a weighted choice closure on a mapping. It uses the values
+    as the weights and the keys as the final choices.
+
+    Like :func:`weighted_choice` this returns a closure. And it also
+    allows passing in a function to return floats 0 < n < 1 if random.random
+    should not be used.
+    """
+
+    values, chances = unzip(sorted(mapping.items(), key=itemgetter(1)))
+    chooser = weighted_choice(chances)
+
+    def random_item():
+        """Closure to associate indices return by weighted_choices
+        with indices of actual values.
+        """
+
+        choice = chooser(randomizer())
+        return values[choice]
+
+    return random_item
+
 
 def unzip(groups):
     """Simple wrapper around zip(*groups). Providing a name is a lot clearer
@@ -43,7 +77,14 @@ def unzip(groups):
 
     [(1,'a'), (2, 'b'), (3, 'c')] -> [(1,2,3), ('a', 'b', 'c')]
     """
+
     return zip(*groups)
+
+
+def random_key(mapping):
+    """Returns a random key from a mapping."""
+
+    return choice(list(mapping.keys()))
 
 
 def __coerce_return(name, source_cls):
@@ -52,6 +93,7 @@ def __coerce_return(name, source_cls):
     """
     old = getattr(source_cls, name)
     return update_wrapper(lambda s, *a, **k: s.__class__(old(s, *a, **k)), old)
+
 
 def patch_return_type(names, source_cls):
     """Class decorator to coerce return types on methods that don't rely on
@@ -64,6 +106,7 @@ def patch_return_type(names, source_cls):
 
         type(MyCounter('a') + MyCounter('a')) #MyCounter rather than Counter
     """
+
     def patcher(cls):
         for name in names:
             setattr(cls, name, __coerce_return(name, source_cls))
