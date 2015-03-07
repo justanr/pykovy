@@ -192,7 +192,6 @@ class MarkovChainIterator(object):
 
         self.__invalid = False
         self.__state = self.__possible = None
-        self.randomizer = randomizer
 
         if begin_at:
             self.__set_state(begin_at)
@@ -216,7 +215,10 @@ class MarkovChainIterator(object):
         closures from a Markov Chain's possible states.
         """
 
-        return {state : chain[state].weighted_choice() for state in chain}
+        return {
+            state : chain[state].weighted_choice(randomizer=self.__randomizer) 
+            for state in chain
+            }
 
 
     def __random_state(self):
