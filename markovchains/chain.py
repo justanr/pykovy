@@ -1,8 +1,13 @@
-from collections import Counter, UserDict, defaultdict, Mapping
+from collections import Counter, UserDict, Mapping
 from itertools import chain
 from random import random
+
 from .errors import MarkovError, DisjointChainError, MarkovStateError
-from .utils import window, weighted_choice_on_map, patch_return_type, random_key
+from .utils import (
+    window, weighted_choice_on_map,
+    patch_return_type, random_key,
+    head, last, groupby
+    )
 
 
 __all__ = (
@@ -41,7 +46,7 @@ class ProbablityMap(Counter):
         """Returns a closure to allow pulling weighted, random keys
         from the object based on the "counted" value.
 
-        Allows passing a function that returns floats 0 < n < 1
+        Allows passing a function that returns floats 0 <= n < 1
         if random.random should not be used.
 
         The closure is frozen to the state of the object when it was called.
@@ -128,15 +133,14 @@ class MarkovChain(UserDict):
         known starting point if needed.
         """
 
-        staging = defaultdict(ProbablityMap)
-
         if begin_with is not None:
             corpus = chain(begin_with, corpus)
 
-        for w in window(corpus, size=order+1):
-            key = tuple(w[:-1])
-            value = {w[-1] : 1}
-            staging[key].update(value)
+        groups = groupby(window(corpus, size=order+1), head)
+        staging = {
+            k : ProbablityMap(map(last, v))
+            for k, v in groups.items()
+            }
 
         return cls(states=staging, order=order)
 
@@ -146,7 +150,7 @@ class MarkovChain(UserDict):
         MarkovChainIterator class for iteration.
         """
 
-        return MarkovChainIterator(chain=self.data, **kwargs)
+        return MarkovChainIterator(chain=self, **kwargs)
 
 
 class MarkovChainIterator(object):
@@ -167,7 +171,7 @@ class MarkovChainIterator(object):
         * randomizer: callable that returns floats 0 < n < 1,
         defaults to :func:`~random.random`
         * begin_at: known state to place the iterator in
-        * randomizer: function to generate floats 0 < n < 1
+        * randomizer: function to generate floats 0 <= n < 1
         defaults to random.random
         """
 
@@ -193,7 +197,6 @@ class MarkovChainIterator(object):
 
         self.__invalid = False
         self.__state = self.__possible = None
-        self.randomizer = randomizer
 
         if begin_at:
             self.__set_state(begin_at)
@@ -217,7 +220,10 @@ class MarkovChainIterator(object):
         closures from a Markov Chain's possible states.
         """
 
-        return {state : chain[state].weighted_choice() for state in chain}
+        return {
+            state : chain[state].weighted_choice(self.__randomizer)
+            for state in chain
+            }
 
 
     def __random_state(self):

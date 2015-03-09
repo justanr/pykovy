@@ -1,5 +1,5 @@
 from bisect import bisect_right
-from collections import deque
+from collections import deque, defaultdict
 from itertools import islice, accumulate
 from functools import update_wrapper
 from operator import itemgetter
@@ -7,7 +7,8 @@ from random import choice, random
 
 __all__ = (
     "window", "weighted_choice", "unzip", 
-    "patch_return_type", "weighted_choice_on_map", "random_key"
+    "patch_return_type", "weighted_choice_on_map", "random_key",
+    "head", "tail", "groupby"
     )
 
 def window(it, size):
@@ -51,7 +52,7 @@ def weighted_choice_on_map(mapping, randomizer=random):
     as the weights and the keys as the final choices.
 
     Like :func:`weighted_choice` this returns a closure. And it also
-    allows passing in a function to return floats 0 < n < 1 if random.random
+    allows passing in a function to return floats 0 <= n < 1 if random.random
     should not be used.
     """
 
@@ -100,7 +101,7 @@ def patch_return_type(names, source_cls):
     reflection to determine the appropriate class to instantiate.
 
         ..python::
-        @patch_return_type(['__add__]', Counter)
+        @patch_return_type(['__add__'], Counter)
         class MyCounter(Counter):
             pass
 
@@ -113,3 +114,19 @@ def patch_return_type(names, source_cls):
         return cls
     return patcher
 
+
+# shameless stolen from pytoolz.itertoolz
+def groupby(seq, key):
+    """Groups an iterable based on a key function.
+    """
+
+    d = defaultdict(lambda: [].append)
+
+    for item in seq:
+        d[key(item)](item)
+
+    return { k : v.__self__ for k, v in d.items() }
+
+
+head = itemgetter(slice(-1))
+last = itemgetter(-1)
