@@ -1,7 +1,7 @@
 from bisect import bisect_right
 from collections import deque, defaultdict
-from itertools import islice, accumulate
 from functools import update_wrapper
+from itertools import islice, accumulate
 from operator import itemgetter
 from random import choice, random
 
@@ -100,7 +100,7 @@ def patch_return_type(names, source_cls):
     """Class decorator to coerce return types on methods that don't rely on
     reflection to determine the appropriate class to instantiate.
 
-        ..python::
+        ..code-block:: python
         @patch_return_type(['__add__'], Counter)
         class MyCounter(Counter):
             pass
@@ -115,11 +115,10 @@ def patch_return_type(names, source_cls):
     return patcher
 
 
-# shameless stolen from pytoolz.itertoolz
+# shamelessly stolen from toolz.itertoolz
 def groupby(seq, key):
     """Groups an iterable based on a key function.
     """
-
     d = defaultdict(lambda: [].append)
 
     for item in seq:

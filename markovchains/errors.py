@@ -1,3 +1,5 @@
+__all__ = ('MarkovError', 'DisjointChainError', 'MarkovStateError')
+
 class MarkovError(Exception):
     """Used as a base exception for the library.
     """

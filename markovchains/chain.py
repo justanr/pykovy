@@ -1,7 +1,6 @@
 from collections import Counter, UserDict, Mapping
 from itertools import chain
 from random import random
-
 from .errors import MarkovError, DisjointChainError, MarkovStateError
 from .utils import (
     window, weighted_choice_on_map,
@@ -64,7 +63,7 @@ class MarkovChain(UserDict):
     
     def __init__(self, order, states=None):
         super().__init__()
-        self.__order = order
+        self._order = order
         if states is not None:
             self.update(states)
 
@@ -76,7 +75,7 @@ class MarkovChain(UserDict):
     @property
     def order(self):
         """Order of the chain, refers to length of keys"""
-        return self.__order
+        return self._order
 
 
     @order.setter
@@ -150,7 +149,7 @@ class MarkovChain(UserDict):
         MarkovChainIterator class for iteration.
         """
 
-        return MarkovChainIterator(chain=self, **kwargs)
+        return MarkovChainIterator(chain=self.data, **kwargs)
 
 
 class MarkovChainIterator(object):
@@ -175,15 +174,15 @@ class MarkovChainIterator(object):
         defaults to random.random
         """
 
-        self.__invalid = False
-        self.__state = self.__possible = None
-        self.__randomizer = randomizer
-        self.__chain = self.__build_chain(chain)
+        self._invalid = False
+        self._state = self._possible = None
+        self._randomizer = randomizer
+        self._chain = self._build_chain(chain)
 
         if begin_at:
-            self.__set_state(begin_at)
+            self._set_state(begin_at)
         else:
-            self.__random_state()
+            self._random_state()
 
 
     def reset(self, begin_at=None, **kwargs):
@@ -195,16 +194,16 @@ class MarkovChainIterator(object):
         * begin_at: known state to place the iterator in
         """
 
-        self.__invalid = False
-        self.__state = self.__possible = None
+        self._invalid = False
+        self._state = self._possible = None
 
         if begin_at:
-            self.__set_state(begin_at)
+            self._set_state(begin_at)
         else:
-            self.__random_state()
+            self._random_state()
 
 
-    def __set_state(self, begin_at=None):
+    def _set_state(self, begin_at=None):
         """Attempts to place iterator into a known state and falls back
         to a random state if the known state isn't possible.
         """
@@ -212,24 +211,24 @@ class MarkovChainIterator(object):
         try:
             self.state = begin_at
         except MarkovStateError:
-            self.__random_state()
+            self._random_state()
 
 
-    def __build_chain(self, chain):
+    def _build_chain(self, chain):
         """Builds map of states and weighted random
         closures from a Markov Chain's possible states.
         """
 
         return {
-            state : chain[state].weighted_choice(self.__randomizer)
+            state : chain[state].weighted_choice(self._randomizer)
             for state in chain
             }
 
 
-    def __random_state(self):
+    def _random_state(self):
         "Puts the chain into a random state."
 
-        self.state = random_key(self.__chain)
+        self.state = random_key(self._chain)
 
 
     @property
@@ -240,7 +239,7 @@ class MarkovChainIterator(object):
         state does not exist, a MarkovStateError is raised.
         """
 
-        return self.__state
+        return self._state
 
 
     @state.setter
@@ -250,11 +249,11 @@ class MarkovChainIterator(object):
         If that isn't possible, raises a MarkovStateError.
         """
 
-        if state not in self.__chain:
+        if state not in self._chain:
             raise MarkovStateError("Invalid state provided: {}".format(state))
 
-        self.__state = state
-        self.__possible = self.__chain[state]
+        self._state = state
+        self._possible = self._chain[state]
 
 
     def __iter__(self):
@@ -265,16 +264,14 @@ class MarkovChainIterator(object):
         """Steps through states until an invalid state is reached,
         which stops iteration with a DisjointChainError.
         """
+        if self._invalid:
+            raise DisjointChainError(self._invalid)
 
-        value = self.__possible()
-
-        if self.__invalid:
-            raise DisjointChainError(self.__invalid)
+        value = self._possible()
 
         try:
-            self.state = self.__state[1:] + tuple([value])
+            self.state = self._state[1:] + tuple([value])
         except MarkovStateError as e:
-            self.__invalid = e
-        
-        return value
+            self._invalid = e
 
+        return value
