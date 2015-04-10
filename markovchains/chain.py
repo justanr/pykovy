@@ -1,4 +1,4 @@
-from collections import Counter, UserDict, Mapping
+from collections import Counter, Mapping, MutableMapping
 from itertools import chain
 from random import random
 from .errors import MarkovError, DisjointChainError, MarkovStateError
@@ -54,7 +54,7 @@ class ProbablityMap(Counter):
         return weighted_choice_on_map(self, randomizer)
 
 
-class MarkovChain(UserDict):
+class MarkovChain(MutableMapping):
     """A collection of states and possible states.
 
     States are keys stored as n-length tuples and possible states are values
@@ -62,7 +62,7 @@ class MarkovChain(UserDict):
     """
     
     def __init__(self, order, states=None):
-        super().__init__()
+        self.data = {}
         self._order = order
         if states is not None:
             self.update(states)
@@ -81,6 +81,13 @@ class MarkovChain(UserDict):
     @order.setter
     def order(self):
         raise TypeError("{}.order is read only".format(self.__class__name__))
+
+
+    # equality is more like "compatibility" meaning two MarkovChains
+    # have the same order and could be merged
+    # this does not imply that *any* shared states exist, however
+    def __eq__(self, other):
+        return isinstance(other, MarkovChain) and self.order == other.order
 
 
     def __iter__(self):
@@ -105,7 +112,17 @@ class MarkovChain(UserDict):
         if not isinstance(value, ProbablityMap):
             value = ProbablityMap(value)
 
-        return super().__setitem__(key, value)
+        self.data[key] = value
+
+
+    def __getitem__(self, state):
+        if not isinstance(state, tuple):
+            state = (state,)
+        return self.data[state]
+
+
+    def __len__(self):
+        return len(self.data)
 
 
     def __delitem__(self, key):
@@ -115,6 +132,37 @@ class MarkovChain(UserDict):
             "{}.data.__delitem__".format(self.__class__.__name__)
             )
 
+    def __contains__(self, v):
+        return v in self.data
+
+    def update(self, other=None, **kwds):
+        """Updates the chain from a mapping/iterable.
+        """
+        other = other or ()
+        if isinstance(other, Mapping):
+            for key in other:
+                self[key] = other[key]
+        elif hasattr(other, 'keys'):
+            for key in other.keys():
+                self[key] = other[key]
+        else:
+            for key, value in other:
+                self[key] = value
+
+        for key, value in kwds.items():
+            self[key] = value
+
+    # proxy keys, values and items to underlying dictionary
+    # to avoid accidentally creating MarkovChainIterator instances
+    # which is likely *not* the desired behavior
+    def keys(self):
+        return self.data.keys()
+
+    def values(self):
+        return self.data.values()
+
+    def items(self):
+        return self.data.items()
 
     @classmethod
     def from_corpus(cls, corpus, order, begin_with=None):
