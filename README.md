@@ -2,7 +2,7 @@ Order-N Markov Chains
 =====================
 A simple library for building Order-N Markov Chains.
 
-There's nothing fancy here, just a modified `collections.Counter` and `collections.UserDict` to handle type saftey on a few things, some helper functions and an iterator for the Markov Chain class.
+There's nothing fancy here, just a modified `collections.Counter` and `collections.MutableMapping` to handle type saftey on a few things, some helper functions and an iterator for the Markov Chain class.
 
 Why?
 ----
@@ -34,7 +34,7 @@ Classes
 -------
 
 * `ProbablityMap`: Modified `collections.Counter` that handles weighted, random choices from its key-value pairs via a closure.
-* `MarkovChain`: Simple modification on a `collections.UserDict` to collate `ProbablityMap` instances together to form a coherent chain.
+* `MarkovChain`: Simple modification on a `collections.MutableMapping` to collate `ProbablityMap` instances together to form a coherent chain.
 * `MarkovChainIterator`: Handles passing through possible states in a `MarkovChain` instance to produce non-deterministic state changes.
 
 Exceptions
