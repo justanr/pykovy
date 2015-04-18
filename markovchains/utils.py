@@ -5,16 +5,17 @@ from itertools import islice, accumulate
 from operator import itemgetter
 from random import choice, random
 
+
 __all__ = (
-    "window", "weighted_choice", "unzip", 
+    "window", "weighted_choice", "unzip",
     "patch_return_type", "weighted_choice_on_map", "random_key",
-    "head", "tail", "groupby"
+    "head", "last", "groupby"
     )
 
 
 def window(it, size):
     """Returns a sliding window (of width size) over data from the iterable.
-    
+
     This is a spin on a recipe provided in the 2.3.5 itertools docs, using
     a deque rather than playing surgeon on a tuple.
     """
@@ -28,14 +29,14 @@ def window(it, size):
 
 
 def weighted_choice(weights):
-    """Creates a list of running totals for weights to choose from 
+    """Creates a list of running totals for weights to choose from
     and returns a callable to handle the actual choosing process.
 
     This closure is a compromise between an object maintaining state and
     recreating the running total every time we need to choose an element.
 
     The closure allows deterministic responses for testing purposes
-    instead of inherently relying on random.random(), though that's 
+    instead of inherently relying on random.random(), though that's
     likely the only actual input.
     """
 
@@ -81,13 +82,18 @@ def unzip(groups):
     return zip(*groups)
 
 
-def random_key(mapping):
-    """Returns a random key from a mapping."""
+def random_key(mapping, chooser=choice):
+    """Returns a random key from a mapping.
 
-    return choice(list(mapping.keys()))
+    Allows passing a function that selects a random item from a list, but
+    defaults to random.choice. Given the nature of dictionary keys, this
+    function is inherently non-deterministic.
+    """
+
+    return chooser(list(mapping.keys()))
 
 
-def __coerce_return(name, source_cls):
+def _coerce_return(name, source_cls):
     """Helper to coerce return type on methods that explicitly create a type
     rather than relying on reflection to determine the appropriate type.
     """
@@ -109,9 +115,10 @@ def patch_return_type(names, source_cls):
 
     def patcher(cls):
         for name in names:
-            setattr(cls, name, __coerce_return(name, source_cls))
+            setattr(cls, name, _coerce_return(name, source_cls))
         return cls
     return patcher
+
 
 # shamelessly stolen from toolz.itertoolz
 def groupby(seq, key):
@@ -122,7 +129,7 @@ def groupby(seq, key):
     for item in seq:
         d[key(item)](item)
 
-    return { k : v.__self__ for k, v in d.items() }
+    return {k: v.__self__ for k, v in d.items()}
 
 
 head = itemgetter(slice(-1))
