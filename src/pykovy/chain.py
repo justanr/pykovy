@@ -6,11 +6,11 @@ from .utils import (
     window, weighted_choice_on_map,
     patch_return_type, random_key,
     head, last, groupby
-    )
+)
 
 __all__ = (
     "MarkovChain", "MarkovChainIterator", "ProbablityMap"
-    )
+)
 
 # these methods in counter explicitly return
 # a new instance of Counter rather than
@@ -18,7 +18,8 @@ __all__ = (
 __COUNTER_OVERRIDE_METHODS = [
     '__add__', '__sub__', '__or__',
     '__and__', '__pos__', '__neg__',
-    ]
+]
+
 
 @patch_return_type(__COUNTER_OVERRIDE_METHODS, Counter)
 class ProbablityMap(Counter):
@@ -59,35 +60,30 @@ class MarkovChain(MutableMapping):
     States are keys stored as n-length tuples and possible states are values
     stored as ProbablityMap instances.
     """
-    
+
     def __init__(self, order, states=None):
         self.data = {}
         self._order = order
         if states is not None:
             self.update(states)
 
-
     def __repr__(self):
         return "{}(order={})".format(self.__class__.__name__, self.order)
-
 
     @property
     def order(self):
         """Order of the chain, refers to length of keys"""
         return self._order
 
-
     @order.setter
-    def order(self):
-        raise TypeError("{}.order is read only".format(self.__class__name__))
-
+    def order(self, value):
+        raise TypeError("{}.order is read only".format(self.__class__.__name__))
 
     # equality is more like "compatibility" meaning two MarkovChains
     # have the same order and could be merged
     # this does not imply that *any* shared states exist, however
     def __eq__(self, other):
         return isinstance(other, MarkovChain) and self.order == other.order
-
 
     def __iter__(self):
         """Return a default MarkovChainIterator.
@@ -96,7 +92,6 @@ class MarkovChain(MutableMapping):
         use :method:`MarkovChain.iterate_chain`
         """
         return MarkovChainIterator(chain=self.data)
-
 
     def __setitem__(self, key, value):
         """Sets key-value pair on the MarkovChain and ensures type saftey
@@ -113,23 +108,20 @@ class MarkovChain(MutableMapping):
 
         self.data[key] = value
 
-
     def __getitem__(self, state):
         if not isinstance(state, tuple):
             state = (state,)
         return self.data[state]
 
-
     def __len__(self):
         return len(self.data)
-
 
     def __delitem__(self, key):
         raise MarkovError(
             "Cannot delete from probablity chain without possibly "
             "becoming disjoint. If you meant this, use "
             "{}.data.__delitem__".format(self.__class__.__name__)
-            )
+        )
 
     def __contains__(self, v):
         return v in self.data
@@ -182,14 +174,13 @@ class MarkovChain(MutableMapping):
         if begin_with is not None:
             corpus = chain(begin_with, corpus)
 
-        groups = groupby(window(corpus, size=order+1), head)
+        groups = groupby(window(corpus, size=order + 1), head)
         staging = {
-            k : ProbablityMap(map(last, v))
+            k: ProbablityMap(map(last, v))
             for k, v in groups.items()
-            }
+        }
 
         return cls(states=staging, order=order)
-
 
     def iterate_chain(self, **kwargs):
         """Allows passing arbitrary keyword arguments to the
@@ -201,7 +192,7 @@ class MarkovChain(MutableMapping):
 
 class MarkovChainIterator(object):
     """Iteration handler for MarkovChains.
-    
+
     Maintains a copy of the original chain's keyed states and creates
     a weighted random choice closure from keys' possible states
     to prevent interference when modifying the original chain during iteration.
@@ -231,7 +222,6 @@ class MarkovChainIterator(object):
         else:
             self._random_state()
 
-
     def reset(self, begin_at=None, **kwargs):
         """Places the iterator back into a known or random state.
 
@@ -248,7 +238,6 @@ class MarkovChainIterator(object):
         else:
             self._random_state()
 
-
     def _set_state(self, begin_at=None):
         """Attempts to place iterator into a known state and falls back
         to a random state if the known state isn't possible.
@@ -259,23 +248,20 @@ class MarkovChainIterator(object):
         except MarkovStateError:
             self._random_state()
 
-
     def _build_chain(self, chain):
         """Builds map of states and weighted random
         closures from a Markov Chain's possible states.
         """
 
         return {
-            state : chain[state].weighted_choice(self._randomizer)
+            state: chain[state].weighted_choice(self._randomizer)
             for state in chain
-            }
-
+        }
 
     def _random_state(self):
         "Puts the chain into a random state."
 
         self.state = random_key(self._chain)
-
 
     @property
     def state(self):
@@ -286,7 +272,6 @@ class MarkovChainIterator(object):
         """
 
         return self._state
-
 
     @state.setter
     def state(self, state):
@@ -301,10 +286,8 @@ class MarkovChainIterator(object):
         self._state = state
         self._possible = self._chain[state]
 
-
     def __iter__(self):
         return self
-
 
     def __next__(self):
         """Steps through states until an invalid state is reached,

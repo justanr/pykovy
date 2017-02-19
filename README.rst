@@ -1,18 +1,20 @@
+=====================
 Order-N Markov Chains
 =====================
+
 A simple library for building Order-N Markov Chains.
 
 There's nothing fancy here, just a modified `collections.Counter` and `collections.MutableMapping` to handle type saftey on a few things, some helper functions and an iterator for the Markov Chain class.
 
 Why?
-----
+====
 
 Why not? Markov Chains are cool. Sure, I didn't include Monte Carlo, Hidden Markov Chains, lexical analysis and tagging and the whole host of other things that accompany more robust Markov libraries.
 
 But sometimes you just want generate funny text from H.P. Lovecraft stories.
 
 Uses
-----
+====
 
 * Build custom Lipsum generators!
 * Analyze patterns in your meals!
@@ -31,14 +33,14 @@ If you'd like a configured instance, use `MarkovChain.iterate_chain` which can p
 Alternatively you can just create the `MarkovChainIterator` yourself. It doesn't bother me.
 
 Classes
--------
+=======
 
 * `ProbablityMap`: Modified `collections.Counter` that handles weighted, random choices from its key-value pairs via a closure.
 * `MarkovChain`: Simple modification on a `collections.MutableMapping` to collate `ProbablityMap` instances together to form a coherent chain.
 * `MarkovChainIterator`: Handles passing through possible states in a `MarkovChain` instance to produce non-deterministic state changes.
 
 Exceptions
-----------
+==========
 
 I've included the new `MarkovError` exception and two sub-exceptions:
 

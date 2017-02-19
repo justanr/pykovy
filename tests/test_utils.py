@@ -1,4 +1,4 @@
-from markovchains import utils
+from pykovy import utils
 from collections import Counter, OrderedDict
 from random import Random
 

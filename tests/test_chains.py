@@ -1,5 +1,5 @@
 import pytest
-from markovchains import chain
+from pykovy import chain
 from random import Random
 
 

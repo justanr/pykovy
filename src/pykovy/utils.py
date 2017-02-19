@@ -10,7 +10,7 @@ __all__ = (
     "window", "weighted_choice", "unzip",
     "patch_return_type", "weighted_choice_on_map", "random_key",
     "head", "last", "groupby"
-    )
+)
 
 
 def window(it, size):
