@@ -1,0 +1,20 @@
+language: python
+sudo: false
+python:
+  - '3.4'
+  - '3.5'
+  - '3.6'
+install:
+  - pip install tox-travis==0.10
+script:
+  - tox
+deploy:
+  provider: pypi
+  user: justanr
+  distributions: sdist bdist_wheel
+  password:
+    secure: VUh7lZAFN44Kvc5QQOUH2+LWOKwz7JnKHc1mBhjfkyd+n/TTSsy46Fcu7tjcHdXPLHURKmI4uvF7pouCG8UesIShb8C0znKmwpPMcipDS9qm+G3B2RQx2sfZbXc8hDzdMIBCqzPNmZ0o5hDflErngu5ohHlvQIkHM9IX5p9Ucio=
+  on:
+    tags: true
+    repo: justanr/pykovy
+    python: '3.6'

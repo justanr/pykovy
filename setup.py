@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 if __name__ == "__main__":
     setup(
         name="pykovy",
-        version="1.0",
+        version="1.1",
         author="Alec Nikolas Reiter",
         author_email="alecreiter@gmail.com",
         description="Real simple markov chains",
